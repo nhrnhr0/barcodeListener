@@ -7,6 +7,8 @@ import configparser
 import time
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+
 
 class BarcodeManager:
     conf = None
@@ -39,7 +41,7 @@ class BarcodeManager:
         chrome_options.add_argument("--start-fullscreen")
         chrome_options.add_experimental_option("excludeSwitches", ['enable-automation']);
 
-        self.browser = webdriver.Chrome(self.conf['chromeDriver'],options=chrome_options)
+        self.browser = webdriver.Chrome(options=chrome_options)#self.conf['chromeDriver'],
         #self.mainDriver.fullscreen_window()
         self.browser.get(self.conf['url'])
         #self.browser.fullscreen_window()
@@ -47,7 +49,7 @@ class BarcodeManager:
         
         self.main_window  = self.browser.current_window_handle
         self.browser.execute_script(f"window.open('{self.conf['productUrl']}')")
-        WebDriverWait(self.browser, 10).until(EC.number_of_windows_to_be(2))
+        WebDriverWait(self.browser, 100).until(EC.number_of_windows_to_be(2))
         browser_windows = self.browser.window_handles
         self.barcode_window = [x for x in browser_windows if x != self.main_window][0]
         # browser.switch_to_window(new_window) <!---deprecated>
@@ -58,9 +60,16 @@ class BarcodeManager:
         #time.sleep(4) 
         #self.mainDriver.execute_script('window.focus();')
         self.browser.switch_to.window(self.main_window)
+        self.play_video()
+
+    def play_video(self):
+        WebDriverWait(self.browser, 10).until(EC.visibility_of_element_located((By.ID, 'ready')))
+        playBtn = self.browser.find_element_by_id('play')
+        playBtn.click()
 
     def switch_to_main_window(self):
         self.browser.switch_to.window(self.main_window)
+        self.play_video()
     def load_config():
         config = configparser.ConfigParser()
         config.read('config.ini')
